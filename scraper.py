@@ -86,21 +86,39 @@ def fetch_menu(hall: str = "bursley", menu_date: str | None = None) -> dict:
             continue
 
         stations = {}
-        # Each station is an <li> containing <h4> (name) + <ul class="items">
-        for station_li in courses_div.select("ul.courses_wrapper > li"):
-            h4 = station_li.find("h4")
-            if not h4:
+        # The courses div contains a mix of direct children:
+        #   - <ul class="courses_wrapper"> with the first station
+        #   - Flat <li> elements for subsequent stations/items
+        #   - <div class="nutrition"> elements (ignored)
+        # An <li> with <h4> starts a new station; <li> without <h4>
+        # belongs to the current station. Items may be nested in
+        # <ul class="items"> or directly in the <li>.
+        current_station = None
+        for child in courses_div.children:
+            if not child.name:
                 continue
-            station_name = h4.get_text(strip=True)
-
-            items = []
-            for item_li in station_li.select("ul.items > li"):
-                item = parse_item(item_li)
-                if item:
-                    items.append(item)
-
-            if items:
-                stations[station_name] = items
+            # Process <li> elements (both inside wrapper and flat)
+            lis_to_process = []
+            if child.name == "ul" and "courses_wrapper" in (child.get("class") or []):
+                lis_to_process = child.find_all("li", recursive=False)
+            elif child.name == "li":
+                lis_to_process = [child]
+            for li in lis_to_process:
+                h4 = li.find("h4")
+                if h4:
+                    current_station = h4.get_text(strip=True)
+                    if current_station not in stations:
+                        stations[current_station] = []
+                    # Parse items nested in <ul class="items">
+                    for item_li in li.select("ul.items > li"):
+                        item = parse_item(item_li)
+                        if item:
+                            stations[current_station].append(item)
+                elif current_station:
+                    # Flat item <li> belonging to the current station
+                    item = parse_item(li)
+                    if item:
+                        stations[current_station].append(item)
 
         if stations:
             meals[meal_name] = stations
