@@ -231,25 +231,33 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
                         name_en = item["name"]
                         name_cn = translations.get(name_en, name_en)
 
-                        # Trait badges + indicators
+                        # Trait badges (all same level)
                         traits_html = ""
-                        carbon_html = ""
-                        nutri_html = ""
                         for trait in item.get("traits", []):
                             info = TRAIT_DISPLAY.get(trait)
                             if not info:
                                 continue
                             emoji, cn, en, css_class = info
                             if trait.startswith("Carbon Footprint"):
-                                carbon_html = (
-                                    f'<span class="indicator {css_class}" title="{trait}">'
+                                lvl = trait.split()[-1]
+                                cn_map = {"Low": "低碳", "Medium": "中碳", "High": "高碳"}
+                                en_map = {"Low": "Low", "Medium": "Med", "High": "High"}
+                                traits_html += (
+                                    f'<span class="trait-badge {css_class}">'
                                     f'{emoji}'
+                                    f'<span class="cn">{cn_map.get(lvl, lvl)}</span>'
+                                    f'<span class="en">CO₂{en_map.get(lvl, lvl)}</span>'
                                     f'</span>'
                                 )
                             elif trait.startswith("Nutrient Dense"):
-                                nutri_html = (
-                                    f'<span class="indicator {css_class}" title="{trait}">'
+                                parts = trait.replace("Nutrient Dense ", "").strip()
+                                cn_map = {"High": "高营养", "Medium High": "中高", "Medium": "中营养", "Low Medium": "中低", "Low": "低营养"}
+                                en_map = {"High": "High", "Medium High": "Med+", "Medium": "Med", "Low Medium": "Med-", "Low": "Low"}
+                                traits_html += (
+                                    f'<span class="trait-badge {css_class}">'
                                     f'{emoji}'
+                                    f'<span class="cn">{cn_map.get(parts, parts)}</span>'
+                                    f'<span class="en">{en_map.get(parts, parts)}</span>'
                                     f'</span>'
                                 )
                             else:
@@ -260,9 +268,6 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
                                     f'<span class="en">{en}</span>'
                                     f'</span>'
                                 )
-                        indicators_html = ""
-                        if carbon_html or nutri_html:
-                            indicators_html = f'<div class="indicators">{carbon_html}{nutri_html}</div>'
 
                         trait_data = " ".join(
                             t.lower().replace(" ", "-") for t in item.get("traits", [])
@@ -276,7 +281,6 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
                             f'</span>'
                             f'<span class="item-traits">{traits_html}</span>'
                             f'</div>'
-                            f'{indicators_html}'
                             f'</div>'
                         )
 
@@ -499,6 +503,14 @@ header h1 {{
 .trait-badge.halal {{ background: #f8d7da; color: #721c24; }}
 .trait-badge.kosher {{ background: #e2d5f1; color: #4a235a; }}
 .trait-badge.spicy {{ background: #ffe0cc; color: #c0392b; }}
+.trait-badge.carbon-low {{ background: #d4edda; color: #155724; }}
+.trait-badge.carbon-med {{ background: #fff3cd; color: #856404; }}
+.trait-badge.carbon-high {{ background: #f8d7da; color: #721c24; }}
+.trait-badge.nutri-high {{ background: #d4edda; color: #155724; }}
+.trait-badge.nutri-medhigh {{ background: #d8efd8; color: #1a6830; }}
+.trait-badge.nutri-med {{ background: #e8e8e8; color: #555; }}
+.trait-badge.nutri-lowmed {{ background: #fde8d0; color: #8a5a2a; }}
+.trait-badge.nutri-low {{ background: #f8d7da; color: #721c24; }}
 @media (prefers-color-scheme: dark) {{
     :root:not(.light-theme) .trait-badge.vegan {{ background: #1e3a2a; color: #75d69c; }}
     :root:not(.light-theme) .trait-badge.vegetarian {{ background: #1a3a4a; color: #6ec8db; }}
@@ -506,6 +518,14 @@ header h1 {{
     :root:not(.light-theme) .trait-badge.halal {{ background: #3a1a1a; color: #e87878; }}
     :root:not(.light-theme) .trait-badge.kosher {{ background: #2a1a3a; color: #b088d0; }}
     :root:not(.light-theme) .trait-badge.spicy {{ background: #3a2010; color: #f0a070; }}
+    :root:not(.light-theme) .trait-badge.carbon-low {{ background: #1e3a2a; color: #75d69c; }}
+    :root:not(.light-theme) .trait-badge.carbon-med {{ background: #3a3520; color: #e0c36a; }}
+    :root:not(.light-theme) .trait-badge.carbon-high {{ background: #3a1a1a; color: #e87878; }}
+    :root:not(.light-theme) .trait-badge.nutri-high {{ background: #1e3a2a; color: #75d69c; }}
+    :root:not(.light-theme) .trait-badge.nutri-medhigh {{ background: #1e3a2a; color: #85d6a0; }}
+    :root:not(.light-theme) .trait-badge.nutri-med {{ background: #2a2a2a; color: #aaa; }}
+    :root:not(.light-theme) .trait-badge.nutri-lowmed {{ background: #3a2a10; color: #e0a060; }}
+    :root:not(.light-theme) .trait-badge.nutri-low {{ background: #3a1a1a; color: #e87878; }}
 }}
 .dark-theme .trait-badge.vegan {{ background: #1e3a2a; color: #75d69c; }}
 .dark-theme .trait-badge.vegetarian {{ background: #1a3a4a; color: #6ec8db; }}
@@ -513,18 +533,14 @@ header h1 {{
 .dark-theme .trait-badge.halal {{ background: #3a1a1a; color: #e87878; }}
 .dark-theme .trait-badge.kosher {{ background: #2a1a3a; color: #b088d0; }}
 .dark-theme .trait-badge.spicy {{ background: #3a2010; color: #f0a070; }}
-.indicators {{
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}}
-.indicator {{
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-}}
+.dark-theme .trait-badge.carbon-low {{ background: #1e3a2a; color: #75d69c; }}
+.dark-theme .trait-badge.carbon-med {{ background: #3a3520; color: #e0c36a; }}
+.dark-theme .trait-badge.carbon-high {{ background: #3a1a1a; color: #e87878; }}
+.dark-theme .trait-badge.nutri-high {{ background: #1e3a2a; color: #75d69c; }}
+.dark-theme .trait-badge.nutri-medhigh {{ background: #1e3a2a; color: #85d6a0; }}
+.dark-theme .trait-badge.nutri-med {{ background: #2a2a2a; color: #aaa; }}
+.dark-theme .trait-badge.nutri-lowmed {{ background: #3a2a10; color: #e0a060; }}
+.dark-theme .trait-badge.nutri-low {{ background: #3a1a1a; color: #e87878; }}
 .no-menu {{
     text-align: center;
     padding: 40px 20px;
