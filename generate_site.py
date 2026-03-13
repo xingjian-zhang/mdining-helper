@@ -289,8 +289,11 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
                                 f'</details>'
                             )
 
+                        trait_data = " ".join(
+                            t.lower().replace(" ", "-") for t in item.get("traits", [])
+                        )
                         items_html += (
-                            f'<div class="menu-item">'
+                            f'<div class="menu-item" data-traits="{trait_data}">'
                             f'<div class="item-header">'
                             f'<span class="item-name">'
                             f'<span class="cn">{name_cn}</span>'
@@ -322,7 +325,7 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
 
         display = "block" if i == 0 else "none"
         hall_contents_html += (
-            f'<div class="hall-content" data-hall="{hall}" style="display:{display}">'
+            f'<div class="hall-content" data-hall="{hall}" data-hall-name="{hall_cn} {hall_en}" style="display:{display}">'
             f'{meals_html}'
             f'</div>\n'
         )
@@ -566,6 +569,38 @@ footer {{
     border-top: 1px solid var(--border);
     margin-top: 24px;
 }}
+/* Dietary filter bar */
+.filter-bar {{
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}}
+.filter-btn {{
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-family: inherit;
+    transition: all 0.2s;
+}}
+.filter-btn:hover {{ background: var(--bg-hover); }}
+.filter-btn.active {{ border-color: var(--accent); color: var(--accent); background: var(--accent-light); }}
+/* Smooth hall content transitions */
+.hall-content {{
+    animation: fadeIn 0.2s ease-in;
+}}
+@keyframes fadeIn {{
+    from {{ opacity: 0; transform: translateY(4px); }}
+    to {{ opacity: 1; transform: translateY(0); }}
+}}
+.menu-item.filtered-out {{
+    display: none;
+}}
 /* Language toggle: default shows Chinese primary */
 body.lang-en .cn {{ display: none; }}
 body.lang-cn .en {{ display: none; }}
@@ -595,15 +630,24 @@ body.lang-cn .en {{ display: none !important; }}
     .item-traits {{ margin-top: 4px; }}
 }}
 @media print {{
-    .controls, .toggle-btn {{ display: none; }}
-    .hall-content {{ display: block !important; }}
+    .controls, .toggle-btn, .filter-bar, .hall-tabs {{ display: none; }}
+    .hall-content {{
+        display: block !important;
+        break-inside: avoid-page;
+        margin-bottom: 24px;
+        animation: none;
+    }}
     .hall-content::before {{
-        content: attr(data-hall);
+        content: attr(data-hall-name);
         display: block;
         font-size: 1.3rem;
         font-weight: bold;
         margin: 16px 0 8px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 4px;
     }}
+    .menu-item {{ box-shadow: none; border: 1px solid #ddd; }}
+    body {{ max-width: 100%; }}
 }}
 </style>
 </head>
@@ -620,6 +664,24 @@ body.lang-cn .en {{ display: none !important; }}
     </div>
 </header>
 
+<div class="filter-bar">
+    <button class="filter-btn" data-filter="vegan" onclick="toggleFilter(this)">
+        <span class="cn">纯素</span><span class="en">Vegan</span>
+    </button>
+    <button class="filter-btn" data-filter="vegetarian" onclick="toggleFilter(this)">
+        <span class="cn">素食</span><span class="en">Vegetarian</span>
+    </button>
+    <button class="filter-btn" data-filter="gluten-free" onclick="toggleFilter(this)">
+        <span class="cn">无麸质</span><span class="en">GF</span>
+    </button>
+    <button class="filter-btn" data-filter="halal" onclick="toggleFilter(this)">
+        <span class="cn">清真</span><span class="en">Halal</span>
+    </button>
+    <button class="filter-btn" data-filter="kosher" onclick="toggleFilter(this)">
+        <span class="cn">犹太洁食</span><span class="en">Kosher</span>
+    </button>
+</div>
+
 <nav class="hall-tabs">
 {hall_tabs_html}
 </nav>
@@ -634,17 +696,50 @@ body.lang-cn .en {{ display: none !important; }}
 </footer>
 
 <script>
-// Hall tab switching
+// Hall tab switching with fade
 document.querySelectorAll('.hall-tab').forEach(tab => {{
     tab.addEventListener('click', () => {{
         document.querySelectorAll('.hall-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         const hall = tab.dataset.hall;
         document.querySelectorAll('.hall-content').forEach(c => {{
-            c.style.display = c.dataset.hall === hall ? 'block' : 'none';
+            if (c.dataset.hall === hall) {{
+                c.style.display = 'block';
+                c.style.animation = 'none';
+                c.offsetHeight; // trigger reflow
+                c.style.animation = '';
+            }} else {{
+                c.style.display = 'none';
+            }}
         }});
+        applyFilters();
     }});
 }});
+
+// Dietary filter toggles
+let activeFilters = new Set();
+function toggleFilter(btn) {{
+    const filter = btn.dataset.filter;
+    if (activeFilters.has(filter)) {{
+        activeFilters.delete(filter);
+        btn.classList.remove('active');
+    }} else {{
+        activeFilters.add(filter);
+        btn.classList.add('active');
+    }}
+    applyFilters();
+}}
+function applyFilters() {{
+    if (activeFilters.size === 0) {{
+        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('filtered-out'));
+        return;
+    }}
+    document.querySelectorAll('.menu-item').forEach(el => {{
+        const traits = el.dataset.traits || '';
+        const match = [...activeFilters].some(f => traits.includes(f));
+        el.classList.toggle('filtered-out', !match);
+    }});
+}}
 
 // Language toggle
 let langState = 0; // 0=both, 1=cn-only, 2=en-only

@@ -72,10 +72,11 @@ Build a static website (GitHub Pages) that displays all Michigan Dining hall men
 - [x] Batch translations in groups of 50 to avoid CLI timeouts on large menus
 - **Notes:** scraper.py retries ConnectionError/Timeout/HTTPError. generate_site.py batches translations.
 
-### Task 3.2 — Visual polish
-- [ ] Add dietary filter toggles (JavaScript, minimal)
-- [ ] Smooth transitions between hall tabs
-- [ ] Print-friendly CSS
+### Task 3.2 — Visual polish ✅
+- [x] Add dietary filter toggles — 5 filter buttons (Vegan/Vegetarian/GF/Halal/Kosher) with OR logic
+- [x] Smooth transitions — fade-in animation on hall tab switch
+- [x] Print-friendly CSS — hides controls/tabs/filters, shows all halls with headers, removes shadows
+- **Notes:** Items have `data-traits` attribute for JS filtering. Filter buttons are bilingual.
 
 ### Task 3.3 — SEO & metadata
 - [ ] Proper `<meta>` tags (charset, viewport, description)
