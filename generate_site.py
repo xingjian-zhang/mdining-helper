@@ -104,11 +104,8 @@ def collect_unique_names(all_menus: list[dict]) -> list[str]:
     return names
 
 
-def translate_names(names: list[str]) -> dict[str, str]:
-    """Translate item names to Chinese using Claude CLI. Returns name->translation mapping."""
-    if not names:
-        return {}
-
+def translate_batch(names: list[str]) -> dict[str, str]:
+    """Translate a single batch of item names via Claude CLI."""
     prompt = (
         "Translate each food/dish name to Chinese (simplified). "
         "Return ONLY a numbered list with the Chinese translation, one per line, "
@@ -121,12 +118,11 @@ def translate_names(names: list[str]) -> dict[str, str]:
             capture_output=True, text=True, timeout=60,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired) as e:
-        print(f"  Warning: Translation failed ({e}), using English only", file=sys.stderr)
+        print(f"  Warning: Translation batch failed ({e})", file=sys.stderr)
         return {}
 
     if result.returncode != 0:
-        print(f"  Warning: Translation failed (exit {result.returncode}), using English only",
-              file=sys.stderr)
+        print(f"  Warning: Translation batch failed (exit {result.returncode})", file=sys.stderr)
         return {}
 
     translations = {}
@@ -143,6 +139,24 @@ def translate_names(names: list[str]) -> dict[str, str]:
             except ValueError:
                 continue
     return translations
+
+
+def translate_names(names: list[str]) -> dict[str, str]:
+    """Translate item names to Chinese using Claude CLI. Batches large lists."""
+    if not names:
+        return {}
+
+    # Batch into groups of 50 to avoid CLI timeouts on large menus
+    BATCH_SIZE = 50
+    all_translations = {}
+    for i in range(0, len(names), BATCH_SIZE):
+        batch = names[i:i + BATCH_SIZE]
+        if len(names) > BATCH_SIZE:
+            print(f"    Batch {i // BATCH_SIZE + 1}/{(len(names) + BATCH_SIZE - 1) // BATCH_SIZE}...",
+                  file=sys.stderr)
+        result = translate_batch(batch)
+        all_translations.update(result)
+    return all_translations
 
 
 def load_translation_cache(cache_path: str) -> dict[str, str]:

@@ -65,10 +65,12 @@ Build a static website (GitHub Pages) that displays all Michigan Dining hall men
 
 ## Phase 3: Polish & Enhancements
 
-### Task 3.1 — Error handling & resilience
-- [ ] Handle individual hall scrape failures (show "暂无菜单" instead of crashing)
-- [ ] Handle Claude CLI not available (skip translation, show English only)
-- [ ] Add retry logic for flaky network requests
+### Task 3.1 — Error handling & resilience ✅
+- [x] Handle individual hall scrape failures (show "暂无菜单" instead of crashing) — already in fetch_all_halls
+- [x] Handle Claude CLI not available (skip translation, show English only) — already in translate_names
+- [x] Add retry logic for flaky network requests — 3 retries with exponential backoff in scraper.py
+- [x] Batch translations in groups of 50 to avoid CLI timeouts on large menus
+- **Notes:** scraper.py retries ConnectionError/Timeout/HTTPError. generate_site.py batches translations.
 
 ### Task 3.2 — Visual polish
 - [ ] Add dietary filter toggles (JavaScript, minimal)

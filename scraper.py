@@ -15,6 +15,7 @@ import argparse
 import json
 import re
 import sys
+import time
 from datetime import date
 
 import requests
@@ -66,8 +67,19 @@ def fetch_menu(hall: str = "bursley", menu_date: str | None = None) -> dict:
     url = BASE_URL.format(hall=hall)
     params = {"menuDate": menu_date}
 
-    resp = requests.get(url, params=params, timeout=15)
-    resp.raise_for_status()
+    # Retry with exponential backoff for transient failures
+    last_exc = None
+    for attempt in range(3):
+        try:
+            resp = requests.get(url, params=params, timeout=15)
+            resp.raise_for_status()
+            break
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as e:
+            last_exc = e
+            if attempt < 2:
+                time.sleep(2 ** attempt)  # 1s, 2s
+    else:
+        raise last_exc  # type: ignore[misc]
 
     soup = BeautifulSoup(resp.text, "html.parser")
     container = soup.find(id="mdining-items")
