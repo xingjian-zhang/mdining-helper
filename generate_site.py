@@ -314,7 +314,7 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
                     )
 
                 meals_html += (
-                    f'<div class="meal-section">'
+                    f'<div class="meal-section" data-meal="{meal_key}">'
                     f'<h3 class="meal-name">'
                     f'<span class="cn">{meal_cn}</span>'
                     f'<span class="en">{meal_en}</span>'
@@ -578,6 +578,28 @@ footer {{
     border-top: 1px solid var(--border);
     margin-top: 24px;
 }}
+/* Meal tabs */
+.meal-tabs {{
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 10px;
+}}
+.meal-tab {{
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.2s;
+}}
+.meal-tab:hover {{ background: var(--bg-hover); }}
+.meal-tab.active {{ border-color: var(--accent); color: var(--accent); background: var(--accent-light); }}
+.meal-section.meal-hidden {{ display: none; }}
 /* Dietary filter bar */
 .filter-bar {{
     display: flex;
@@ -673,6 +695,21 @@ body.lang-cn .en {{ display: none !important; }}
     </div>
 </header>
 
+<div class="meal-tabs">
+    <button class="meal-tab" data-meal="breakfast" onclick="switchMeal(this)">
+        <span class="cn">早餐</span><span class="en">Breakfast</span>
+    </button>
+    <button class="meal-tab active" data-meal="lunch" onclick="switchMeal(this)">
+        <span class="cn">午餐</span><span class="en">Lunch</span>
+    </button>
+    <button class="meal-tab" data-meal="dinner" onclick="switchMeal(this)">
+        <span class="cn">晚餐</span><span class="en">Dinner</span>
+    </button>
+    <button class="meal-tab" data-meal="all" onclick="switchMeal(this)">
+        <span class="cn">全部</span><span class="en">All</span>
+    </button>
+</div>
+
 <div class="filter-bar">
     <button class="filter-btn" data-filter="vegan" onclick="toggleFilter(this)">
         <span class="cn">纯素</span><span class="en">Vegan</span>
@@ -723,6 +760,25 @@ document.querySelectorAll('.hall-tab').forEach(tab => {{
         }});
         applyFilters();
     }});
+}});
+
+// Meal tab switching
+let activeMeal = 'lunch';
+function switchMeal(btn) {{
+    document.querySelectorAll('.meal-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    activeMeal = btn.dataset.meal;
+    document.querySelectorAll('.meal-section').forEach(el => {{
+        if (activeMeal === 'all' || el.dataset.meal === activeMeal) {{
+            el.classList.remove('meal-hidden');
+        }} else {{
+            el.classList.add('meal-hidden');
+        }}
+    }});
+}}
+// Default to lunch on load
+document.querySelectorAll('.meal-section').forEach(el => {{
+    if (el.dataset.meal !== 'lunch') el.classList.add('meal-hidden');
 }});
 
 // Dietary filter toggles
