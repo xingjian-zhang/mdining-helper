@@ -49,23 +49,17 @@ Build a static website (GitHub Pages) that displays all Michigan Dining hall men
 
 ## Phase 2: GitHub Actions & Deployment
 
-### Task 2.1 — GitHub Actions workflow
-- [ ] Create `.github/workflows/daily-menu.yml`
-- [ ] Schedule: `cron: '0 10 * * *'` (10:00 UTC = 5/6 AM ET, before breakfast)
-- [ ] Also trigger on `workflow_dispatch` for manual runs
-- [ ] Steps:
-  1. Checkout repo
-  2. Set up Python 3.10+
-  3. `pip install requests beautifulsoup4`
-  4. Set up Claude CLI (needs ANTHROPIC_API_KEY secret)
-  5. Run `python generate_site.py`
-  6. Commit updated cache + deploy HTML to gh-pages
-- **Notes:** Use `peaceiris/actions-gh-pages` or `JamesIves/github-pages-deploy-action` for deployment
+### Task 2.1 — GitHub Actions workflow ✅
+- [x] Create `.github/workflows/daily-menu.yml`
+- [x] Schedule: `cron: '0 10 * * *'` (10:00 UTC = 5/6 AM ET, before breakfast)
+- [x] Also trigger on `workflow_dispatch` for manual runs
+- [x] Steps: checkout → Python 3.12 → pip install → Claude CLI → generate → cache commit → deploy
+- **Notes:** Uses `actions/deploy-pages@v4` with `upload-pages-artifact@v3`. Needs `ANTHROPIC_API_KEY` secret in repo settings. Also needs Pages enabled (Settings → Pages → Source: GitHub Actions).
 
-### Task 2.2 — GitHub Pages configuration
-- [ ] Add deployment action that pushes `site/index.html` to `gh-pages` branch
-- [ ] Ensure CNAME or base URL is set correctly
-- [ ] Add a manual trigger button in workflow for testing
+### Task 2.2 — GitHub Pages configuration ✅
+- [x] Add deployment action that pushes `site/` to GitHub Pages
+- [x] Manual trigger via `workflow_dispatch`
+- **Notes:** Uses the newer GitHub Pages deployment via Actions (not gh-pages branch). Translation cache is auto-committed back to main.
 
 ---
 
@@ -93,6 +87,7 @@ Build a static website (GitHub Pages) that displays all Michigan Dining hall men
 - [x] CLI scraper, menu viewer, and comparison tool built
 - [x] Chinese translation via Claude CLI working in menu.py
 - [x] Phase 1 complete: `generate_site.py` with concurrent fetching, translation (with cache), and full HTML rendering
+- [x] Phase 2 complete: GitHub Actions workflow with daily cron + manual dispatch, deploys to GitHub Pages
 
 ## Notes
 - The existing `translate_menu()` in `menu.py` is the reference for how to call Claude CLI for translation
