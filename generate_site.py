@@ -56,6 +56,27 @@ TRAIT_DISPLAY = {
     "Nutrient Dense Low": ("⬇️", "", "", "nutri-low"),
 }
 
+STATION_NAMES_CN = {
+    "Soup": "汤类",
+    "Signature Maize": "招牌 Maize",
+    "Signature Blue": "招牌 Blue",
+    "24 Carrots": "24 Carrots 健康",
+    "Halal": "清真",
+    "Pizziti": "披萨",
+    "Wild Fire Maize": "烧烤",
+    "Deli": "熟食",
+    "MBakery": "烘焙",
+    "World Palate Maize": "世界风味",
+    "World Palate Blue": "世界风味",
+    "Kosher Deli": "犹太熟食",
+    "Fresh Coast": "新鲜海岸",
+    "Blue Garden": "花园沙拉",
+    "Maize Garden": "花园沙拉",
+    "Cereal": "麦片",
+    "Grill": "烧烤",
+    "Breakfast": "早餐",
+}
+
 ALLERGEN_NAMES_CN = {
     "Wheat": "小麦",
     "Soy": "大豆",
@@ -231,35 +252,19 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
                         name_en = item["name"]
                         name_cn = translations.get(name_en, name_en)
 
-                        # Trait badges (all same level)
+                        # Separate dietary tags from carbon/nutrient
                         traits_html = ""
+                        carbon_class = ""
+                        nutri_class = ""
                         for trait in item.get("traits", []):
                             info = TRAIT_DISPLAY.get(trait)
                             if not info:
                                 continue
                             emoji, cn, en, css_class = info
                             if trait.startswith("Carbon Footprint"):
-                                lvl = trait.split()[-1]
-                                cn_map = {"Low": "低碳", "Medium": "中碳", "High": "高碳"}
-                                en_map = {"Low": "Low", "Medium": "Med", "High": "High"}
-                                traits_html += (
-                                    f'<span class="trait-badge {css_class}">'
-                                    f'{emoji}'
-                                    f'<span class="cn">{cn_map.get(lvl, lvl)}</span>'
-                                    f'<span class="en">CO₂{en_map.get(lvl, lvl)}</span>'
-                                    f'</span>'
-                                )
+                                carbon_class = css_class
                             elif trait.startswith("Nutrient Dense"):
-                                parts = trait.replace("Nutrient Dense ", "").strip()
-                                cn_map = {"High": "高营养", "Medium High": "中高", "Medium": "中营养", "Low Medium": "中低", "Low": "低营养"}
-                                en_map = {"High": "High", "Medium High": "Med+", "Medium": "Med", "Low Medium": "Med-", "Low": "Low"}
-                                traits_html += (
-                                    f'<span class="trait-badge {css_class}">'
-                                    f'{emoji}'
-                                    f'<span class="cn">{cn_map.get(parts, parts)}</span>'
-                                    f'<span class="en">{en_map.get(parts, parts)}</span>'
-                                    f'</span>'
-                                )
+                                nutri_class = css_class
                             else:
                                 traits_html += (
                                     f'<span class="trait-badge {css_class}">'
@@ -273,21 +278,32 @@ def render_html(all_menus: list[dict], translations: dict[str, str],
                             TRAIT_DISPLAY[t][3] if t in TRAIT_DISPLAY else t.lower().replace(" ", "-")
                             for t in item.get("traits", [])
                         )
+                        # Left border = carbon color, right dot = nutrient
+                        border_class = f" {carbon_class}" if carbon_class else ""
+                        nutri_dot = ""
+                        if nutri_class:
+                            nutri_dot = f'<span class="nutri-dot {nutri_class}" title="{nutri_class}"></span>'
                         items_html += (
-                            f'<div class="menu-item" data-traits="{trait_data}">'
+                            f'<div class="menu-item{border_class}" data-traits="{trait_data}">'
                             f'<div class="item-header">'
                             f'<span class="item-name">'
                             f'<span class="cn">{name_cn}</span>'
                             f'<span class="en">{name_en}</span>'
                             f'</span>'
-                            f'<span class="item-traits">{traits_html}</span>'
+                            f'{nutri_dot}'
                             f'</div>'
+                            f'{f"""<div class="item-tags">{traits_html}</div>""" if traits_html else ""}'
                             f'</div>'
                         )
 
+                    station_cn = STATION_NAMES_CN.get(station_name, "")
+                    station_label = (
+                        f'<span class="cn">{station_cn}</span> <span class="en">{station_name}</span>'
+                        if station_cn else station_name
+                    )
                     stations_html += (
                         f'<div class="station">'
-                        f'<h4 class="station-name">{station_name}</h4>'
+                        f'<h4 class="station-name">{station_label}</h4>'
                         f'{items_html}'
                         f'</div>'
                     )
@@ -451,7 +467,12 @@ header h1 {{
     margin-bottom: 12px;
 }}
 .station {{
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border);
+}}
+.station:last-child {{
+    border-bottom: none;
 }}
 .station-name {{
     font-size: 0.95rem;
@@ -482,11 +503,12 @@ header h1 {{
     font-size: 0.85rem;
     font-weight: 400;
 }}
-.item-traits {{
+/* Item tags row */
+.item-tags {{
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
-    flex-shrink: 0;
+    margin-top: 4px;
 }}
 .trait-badge {{
     font-size: 0.7rem;
@@ -504,14 +526,6 @@ header h1 {{
 .trait-badge.halal {{ background: #f8d7da; color: #721c24; }}
 .trait-badge.kosher {{ background: #e2d5f1; color: #4a235a; }}
 .trait-badge.spicy {{ background: #ffe0cc; color: #c0392b; }}
-.trait-badge.carbon-low {{ background: #d4edda; color: #155724; }}
-.trait-badge.carbon-med {{ background: #fff3cd; color: #856404; }}
-.trait-badge.carbon-high {{ background: #f8d7da; color: #721c24; }}
-.trait-badge.nutri-high {{ background: #d4edda; color: #155724; }}
-.trait-badge.nutri-medhigh {{ background: #d8efd8; color: #1a6830; }}
-.trait-badge.nutri-med {{ background: #e8e8e8; color: #555; }}
-.trait-badge.nutri-lowmed {{ background: #fde8d0; color: #8a5a2a; }}
-.trait-badge.nutri-low {{ background: #f8d7da; color: #721c24; }}
 @media (prefers-color-scheme: dark) {{
     :root:not(.light-theme) .trait-badge.vegan {{ background: #1e3a2a; color: #75d69c; }}
     :root:not(.light-theme) .trait-badge.vegetarian {{ background: #1a3a4a; color: #6ec8db; }}
@@ -519,14 +533,6 @@ header h1 {{
     :root:not(.light-theme) .trait-badge.halal {{ background: #3a1a1a; color: #e87878; }}
     :root:not(.light-theme) .trait-badge.kosher {{ background: #2a1a3a; color: #b088d0; }}
     :root:not(.light-theme) .trait-badge.spicy {{ background: #3a2010; color: #f0a070; }}
-    :root:not(.light-theme) .trait-badge.carbon-low {{ background: #1e3a2a; color: #75d69c; }}
-    :root:not(.light-theme) .trait-badge.carbon-med {{ background: #3a3520; color: #e0c36a; }}
-    :root:not(.light-theme) .trait-badge.carbon-high {{ background: #3a1a1a; color: #e87878; }}
-    :root:not(.light-theme) .trait-badge.nutri-high {{ background: #1e3a2a; color: #75d69c; }}
-    :root:not(.light-theme) .trait-badge.nutri-medhigh {{ background: #1e3a2a; color: #85d6a0; }}
-    :root:not(.light-theme) .trait-badge.nutri-med {{ background: #2a2a2a; color: #aaa; }}
-    :root:not(.light-theme) .trait-badge.nutri-lowmed {{ background: #3a2a10; color: #e0a060; }}
-    :root:not(.light-theme) .trait-badge.nutri-low {{ background: #3a1a1a; color: #e87878; }}
 }}
 .dark-theme .trait-badge.vegan {{ background: #1e3a2a; color: #75d69c; }}
 .dark-theme .trait-badge.vegetarian {{ background: #1a3a4a; color: #6ec8db; }}
@@ -534,14 +540,38 @@ header h1 {{
 .dark-theme .trait-badge.halal {{ background: #3a1a1a; color: #e87878; }}
 .dark-theme .trait-badge.kosher {{ background: #2a1a3a; color: #b088d0; }}
 .dark-theme .trait-badge.spicy {{ background: #3a2010; color: #f0a070; }}
-.dark-theme .trait-badge.carbon-low {{ background: #1e3a2a; color: #75d69c; }}
-.dark-theme .trait-badge.carbon-med {{ background: #3a3520; color: #e0c36a; }}
-.dark-theme .trait-badge.carbon-high {{ background: #3a1a1a; color: #e87878; }}
-.dark-theme .trait-badge.nutri-high {{ background: #1e3a2a; color: #75d69c; }}
-.dark-theme .trait-badge.nutri-medhigh {{ background: #1e3a2a; color: #85d6a0; }}
-.dark-theme .trait-badge.nutri-med {{ background: #2a2a2a; color: #aaa; }}
-.dark-theme .trait-badge.nutri-lowmed {{ background: #3a2a10; color: #e0a060; }}
-.dark-theme .trait-badge.nutri-low {{ background: #3a1a1a; color: #e87878; }}
+/* Carbon footprint: left border color */
+.menu-item.carbon-low {{ border-left: 3px solid #28a745; }}
+.menu-item.carbon-med {{ border-left: 3px solid #ffc107; }}
+.menu-item.carbon-high {{ border-left: 3px solid #dc3545; }}
+/* Nutrient density dot */
+.nutri-dot {{
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+}}
+.nutri-dot.nutri-high {{ background: #28a745; }}
+.nutri-dot.nutri-medhigh {{ background: #5cb85c; }}
+.nutri-dot.nutri-med {{ background: #aaa; }}
+.nutri-dot.nutri-lowmed {{ background: #f0ad4e; }}
+.nutri-dot.nutri-low {{ background: #dc3545; }}
+/* Collapsible filter panel */
+.filter-panel {{
+    text-align: center;
+    margin-bottom: 8px;
+}}
+.filter-toggle {{
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-family: inherit;
+    list-style: none;
+    padding: 4px 0;
+}}
+.filter-toggle::-webkit-details-marker {{ display: none; }}
+.filter-toggle::before {{ content: "▶ "; font-size: 0.7em; }}
+.filter-panel[open] .filter-toggle::before {{ content: "▼ "; }}
 .no-menu {{
     text-align: center;
     padding: 40px 20px;
@@ -688,32 +718,19 @@ body.lang-cn .en {{ display: none !important; }}
     </button>
 </div>
 
-<div class="filter-bar">
-    <button class="filter-btn" data-filter="vegan" onclick="toggleFilter(this)">
-        🌱 <span class="cn">纯素</span><span class="en">Vegan</span>
-    </button>
-    <button class="filter-btn" data-filter="vegetarian" onclick="toggleFilter(this)">
-        🥬 <span class="cn">素食</span><span class="en">Vegetarian</span>
-    </button>
-    <button class="filter-btn" data-filter="gluten-free" onclick="toggleFilter(this)">
-        🌾 <span class="cn">无麸质</span><span class="en">GF</span>
-    </button>
-    <button class="filter-btn" data-filter="halal" onclick="toggleFilter(this)">
-        ☪️ <span class="cn">清真</span><span class="en">Halal</span>
-    </button>
-    <button class="filter-btn" data-filter="kosher" onclick="toggleFilter(this)">
-        ✡️ <span class="cn">犹太洁食</span><span class="en">Kosher</span>
-    </button>
-    <button class="filter-btn" data-filter="spicy" onclick="toggleFilter(this)">
-        🌶️ <span class="cn">辣</span><span class="en">Spicy</span>
-    </button>
-    <button class="filter-btn" data-filter="carbon-low" onclick="toggleFilter(this)">
-        🟢 <span class="cn">低碳</span><span class="en">Low CO₂</span>
-    </button>
-    <button class="filter-btn" data-filter="nutri-high" onclick="toggleFilter(this)">
-        ⬆️ <span class="cn">高营养</span><span class="en">High Nutri</span>
-    </button>
-</div>
+<details class="filter-panel">
+    <summary class="filter-toggle"><span class="cn">筛选</span><span class="en">Filter</span></summary>
+    <div class="filter-bar">
+        <button class="filter-btn" data-filter="vegan" onclick="toggleFilter(this)">🌱 <span class="cn">纯素</span><span class="en">Vegan</span></button>
+        <button class="filter-btn" data-filter="vegetarian" onclick="toggleFilter(this)">🥬 <span class="cn">素食</span><span class="en">Veg</span></button>
+        <button class="filter-btn" data-filter="gluten-free" onclick="toggleFilter(this)">🌾 <span class="cn">无麸质</span><span class="en">GF</span></button>
+        <button class="filter-btn" data-filter="halal" onclick="toggleFilter(this)">☪️ <span class="cn">清真</span><span class="en">Halal</span></button>
+        <button class="filter-btn" data-filter="kosher" onclick="toggleFilter(this)">✡️ <span class="cn">犹太洁食</span><span class="en">Kosher</span></button>
+        <button class="filter-btn" data-filter="spicy" onclick="toggleFilter(this)">🌶️ <span class="cn">辣</span><span class="en">Spicy</span></button>
+        <button class="filter-btn" data-filter="carbon-low" onclick="toggleFilter(this)">🟢 <span class="cn">低碳</span><span class="en">Low CO₂</span></button>
+        <button class="filter-btn" data-filter="nutri-high" onclick="toggleFilter(this)">⬆️ <span class="cn">高营养</span><span class="en">Nutri+</span></button>
+    </div>
+</details>
 
 <nav class="hall-tabs">
 {hall_tabs_html}
