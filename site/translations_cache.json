@@ -9793,7 +9793,8 @@
     "ko": "글루텐 프리 옥수수 파스타",
     "ja": "グルテンフリーのコーンパスタ",
     "es": "Pasta de maíz sin gluten",
-    "pt": "Macarrão de Milho Sem Glúten"
+    "pt": "Macarrão de Milho Sem Glúten",
+    "zh-TW": "無麩質玉米麵食"
   },
   "Salisbury Steak": {
     "zh-CN": "索尔兹伯里牛排",
@@ -15633,7 +15634,8 @@
     "zh-TW": "豆豉炸玉米餅碎",
     "ja": "テンペタコスクランブルズ",
     "es": "Tempeh Taco Desmenuzado",
-    "pt": "Tempeh Taco Crumbles"
+    "pt": "Tempeh Taco Crumbles",
+    "ko": "템페 타코 크럼블"
   },
   "Turkey Chili": {
     "zh-TW": "火雞辣椒",
@@ -16156,5 +16158,83 @@
     "ja": "バタークリームフロスティングのイエローケーキ",
     "es": "Pastel Amarillo con Glaseado de Crema de Mantequilla",
     "pt": "Bolo Amarelo com Cobertura de Buttercream"
+  },
+  "Garlic Parsley Pinto Beans": {
+    "zh-CN": "大蒜 欧芹 花豆",
+    "zh-TW": "大蒜 歐芹 花豆",
+    "ko": "마늘 파슬리 핀토 콩"
+  },
+  "Halal Grilled Chicken": {
+    "zh-CN": "清真烤鸡",
+    "zh-TW": "清真烤雞",
+    "ko": "할랄 그릴드 치킨",
+    "pt": "Frango Grelhado Halal"
+  },
+  "Sesame Ginger Vinaigrette": {
+    "zh-CN": "芝麻姜油醋汁",
+    "zh-TW": "芝麻薑油醋汁",
+    "ko": "참깨 생강 비네그레트"
+  },
+  "Coleslaw Mix": {
+    "zh-CN": "凉拌卷心菜混合",
+    "zh-TW": "涼拌高麗菜混合",
+    "ko": "양배추 샐러드 믹스",
+    "ja": "コールスローミックス"
+  },
+  "Triple Berry Crisp": {
+    "zh-CN": "三重浆果脆",
+    "zh-TW": "三重漿果脆",
+    "ko": "트리플 베리 크리스프",
+    "pt": "Crocante de frutas triplas"
+  },
+  "Vegan Spinach Pie": {
+    "zh-CN": "纯素菠菜派",
+    "zh-TW": "純素菠菜派",
+    "ko": "비건 시금치 파이"
+  },
+  "Chorizo Hash": {
+    "zh-CN": "香肠哈希",
+    "zh-TW": "香腸哈希",
+    "ko": "초리조 해시",
+    "ja": "チョリソーハッシュ"
+  },
+  "Wild Mushroom Flatbread Pizza": {
+    "zh-CN": "野生蘑菇面包披萨",
+    "zh-TW": "野生蘑菇麵包披薩",
+    "ko": "야생 버섯 플랫브레드 피자"
+  },
+  "Roasted Vegetable Strudel": {
+    "zh-CN": "烤蔬菜馅饼",
+    "zh-TW": "烤蔬菜餡餅",
+    "ko": "구운 야채 슈트루델",
+    "es": "Strudel De Verduras Asadas",
+    "pt": "Strudel de legumes assados"
+  },
+  "Italian Beans & Rice": {
+    "zh-CN": "意大利豆和米饭",
+    "zh-TW": "義大利豆和米飯",
+    "ko": "이탈리아 콩 & 쌀"
+  },
+  "Mushroom Paella": {
+    "zh-CN": "蘑菇海鲜饭",
+    "zh-TW": "蘑菇海鮮飯",
+    "ko": "버섯 빠에야",
+    "ja": "キノコのパエリア",
+    "pt": "Paella de Cogumelos"
+  },
+  "Seafood Salad": {
+    "zh-CN": "海鲜沙拉",
+    "zh-TW": "海鮮沙拉",
+    "ko": "해산물 샐러드",
+    "ja": "シーフードサラダ",
+    "es": "Ensalada De Mariscos",
+    "pt": "Salada de Frutos do Mar"
+  },
+  "Brined Chicken": {
+    "zh-CN": "卤鸡",
+    "zh-TW": "滷雞",
+    "ko": "소금물에 절인 닭고기",
+    "es": "Pollo En Salmuera",
+    "pt": "Frango Salgado"
   }
 }
